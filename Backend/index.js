@@ -1,0 +1,50 @@
+import express from "express";
+import dotenv from "dotenv";
+import connectDb from "./database/db.js";
+import cookieParser from "cookie-parser";
+import cloudinary from "cloudinary";
+import path from "path";
+
+dotenv.config();
+
+cloudinary.v2.config({
+  cloud_name: process.env.Cloud_Name,
+  api_key: process.env.Cloud_Api,
+  api_secret: process.env.Cloud_Secret,
+});
+
+const app = express();
+
+// Middlewares
+app.use(express.json());
+app.use(cookieParser());
+
+// Environment port
+const port = process.env.PORT || 5000;
+
+// Import routes
+import userRoutes from "./routes/userRoutes.js";
+import songRoutes from "./routes/songRoutes.js";
+
+// Use routes
+app.use("/api/user", userRoutes);
+app.use("/api/song", songRoutes);
+
+// __dirname in ES module
+const __dirname = path.resolve();
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, "..", "Frontend", "dist")));
+
+// Fallback route for SPA (safe for Express v5)
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "Frontend", "dist", "index.html"));
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`✅ Server is running on http://localhost:${port}`);
+  connectDb();
+});
+
+
