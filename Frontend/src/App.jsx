@@ -1,7 +1,7 @@
 import React from "react";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import {BrowserRouter, Routes, Route} from "react-router-dom";
+import {Routes, Route, HashRouter} from "react-router-dom";
 import Home from "./pages/Home";
 import { UserData } from "./context/User";
 import Loading from "./components/Loading";
@@ -16,7 +16,7 @@ function App() {
     {loading ? (
       <Loading/>
     ): (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={Authen?<Home/>:<Login/>}/>
 
@@ -31,7 +31,7 @@ function App() {
         <Route path="/register" element={Authen?<Home/>:<Register/>}/>
 
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )}
   
   </>
