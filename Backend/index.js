@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import connectDb from "./database/db.js";
 import cookieParser from "cookie-parser";
 import cloudinary from "cloudinary";
-import path from "path";
 import cors from "cors";
 
 dotenv.config();
@@ -51,17 +50,6 @@ import songRoutes from "./routes/songRoutes.js";
 // Use routes
 app.use("/api/user", userRoutes);
 app.use("/api/song", songRoutes);
-
-// __dirname in ES module
-const __dirname = path.resolve();
-
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, "..", "Frontend", "dist")));
-
-// Fallback route for SPA
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "Frontend", "dist", "index.html"));
-});
 
 // Start server
 app.listen(port, () => {
