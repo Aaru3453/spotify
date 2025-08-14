@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { API_BASE } from "./config";
 
 const UserContext = createContext();
 
@@ -20,12 +21,11 @@ export const UserProvider = ({ children }) => {
   ) {
     setBtnLoading(true);
     try {
-      const { data } = await axios.post("/api/user/register", {
+      const { data } = await axios.post(`${API_BASE}/api/user/register`, {
         name,
         email,
         password,
       });
-
       toast.success(data.message);
       setUser(data.user);
       setAuthen(true);
@@ -34,7 +34,7 @@ export const UserProvider = ({ children }) => {
       fetchSongs();
       fetchAlbums();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Error");
       setBtnLoading(false);
     }
   }
@@ -42,11 +42,10 @@ export const UserProvider = ({ children }) => {
   async function loginUser(email, password, navigate, fetchSongs, fetchAlbums) {
     setBtnLoading(true);
     try {
-      const { data } = await axios.post("/api/user/login", {
+      const { data } = await axios.post(`${API_BASE}/api/user/login`, {
         email,
         password,
       });
-
       toast.success(data.message);
       setUser(data.user);
       setAuthen(true);
@@ -55,15 +54,16 @@ export const UserProvider = ({ children }) => {
       fetchSongs();
       fetchAlbums();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Error");
       setBtnLoading(false);
     }
   }
 
   async function fetchUser() {
     try {
-      const { data } = await axios.get("/api/user/me");
-
+      const { data } = await axios.get(`${API_BASE}/api/user/me`, {
+        withCredentials: true,
+      });
       setUser(data);
       setAuthen(true);
       setLoading(false);
@@ -76,28 +76,29 @@ export const UserProvider = ({ children }) => {
 
   async function logoutUser() {
     try {
-      const { data } = await axios.get("/api/user/logout");
-
+      await axios.get(`${API_BASE}/api/user/logout`, {
+        withCredentials: true,
+      });
       window.location.reload();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Error");
     }
   }
 
   async function addToPlaylist(id) {
     try {
-      const { data } = await axios.post("/api/user/song/" + id);
-
+      const { data } = await axios.post(`${API_BASE}/api/user/song/${id}`);
       toast.success(data.message);
       fetchUser();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Error");
     }
   }
 
   useEffect(() => {
     fetchUser();
   }, []);
+
   return (
     <UserContext.Provider
       value={{
