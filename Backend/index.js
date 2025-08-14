@@ -16,22 +16,21 @@ cloudinary.v2.config({
 
 const app = express();
 
-// ✅ Dynamic CORS config with logging
+// ✅ Allowed origins list
+const allowedOrigins = [
+  "http://localhost:5173",                 // Local development
+  "https://spotify-1-naze.onrender.com"
+];
+
+// ✅ CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (Postman, curl, mobile apps)
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-
-    // Allow localhost (dev) and any *.onrender.com domain
-    const allowed =
-      origin.includes("localhost") ||
-      /\.onrender\.com$/.test(new URL(origin).hostname);
-
-    if (allowed) {
-      callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     } else {
-      console.warn(`🚫 CORS Blocked Request from Origin: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
+      return callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true
@@ -54,7 +53,7 @@ app.use("/api/song", songRoutes);
 
 // Start server
 app.listen(port, () => {
-  console.log(`✅ Server is running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
   connectDb();
 });
 

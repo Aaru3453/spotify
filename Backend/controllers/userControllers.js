@@ -7,87 +7,54 @@ export const registerUser = TryCatch(async (req, res) => {
   const { name, email, password } = req.body;
 
   let user = await User.findOne({ email });
-
-  if (user)
-    return res.status(400).json({
-      message: "User Already Exists",
-    });
+  if (user) return res.status(400).json({ message: "User Already Exists" });
 
   const hashPassword = await bcrypt.hash(password, 10);
-
-  user = await User.create({
-    name,
-    email,
-    password: hashPassword,
-  });
+  user = await User.create({ name, email, password: hashPassword });
 
   generateToken(user._id, res);
-
-  res.status(201).json({
-    user,
-    message: "User Registered",
-  });
+  res.status(201).json({ user, message: "User Registered" });
 });
 
 export const loginUser = TryCatch(async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
-
-  if (!user)
-    return res.status(400).json({
-      message: "No User Exist",
-    });
+  if (!user) return res.status(400).json({ message: "No User Exist" });
 
   const comparePassword = await bcrypt.compare(password, user.password);
-
-  if (!comparePassword)
-    return res.status(400).json({
-      message: "Wrong Password",
-    });
+  if (!comparePassword) return res.status(400).json({ message: "Wrong Password" });
 
   generateToken(user._id, res);
-
-  res.status(200).json({
-    user,
-    message: "User LoggedIN",
-  });
+  res.status(200).json({ user, message: "User LoggedIN" });
 });
 
 export const myProfile = TryCatch(async (req, res) => {
   const user = await User.findById(req.user._id);
-
   res.json(user);
 });
 
 export const logoutUser = TryCatch(async (req, res) => {
-  res.cookie("token", "", { maxAge: 0 });
-
-  res.json({
-    message: "Logged Out Successfully",
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Render par true
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    expires: new Date(0)
   });
+
+  res.json({ message: "Logged Out Successfully" });
 });
 
 export const saveToPlaylist = TryCatch(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user.playlist.includes(req.params.id)) {
-    const index = user.playlist.indexOf(req.params.id);
-
-    user.playlist.splice(index, 1);
-
+    user.playlist = user.playlist.filter(item => item.toString() !== req.params.id);
     await user.save();
-
-    return res.json({
-      message: "Removed from playlist",
-    });
+    return res.json({ message: "Removed from playlist" });
   }
 
   user.playlist.push(req.params.id);
-
   await user.save();
-
-  return res.json({
-    message: "added to playlist",
-  });
+  return res.json({ message: "Added to playlist" });
 });
