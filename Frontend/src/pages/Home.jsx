@@ -6,15 +6,16 @@ import SongItem from "../components/SongItem";
 
 const Home = () => {
   const { songs, albums } = SongData();
+
   return (
     <Layout>
       <div className="mb-4">
         <h1 className="my-5 font-bold text-2xl">Featured Charts</h1>
         <div className="flex overflow-auto">
-          {albums.map((e, i) => (
+          {albums?.map((e, i) => (
             <AlbumItem
               key={i}
-              image={e.thumbnail.url}
+              image={e?.thumbnail?.url || "https://via.placeholder.com/150"}
               name={e.title}
               desc={e.description}
               id={e._id}
@@ -26,10 +27,10 @@ const Home = () => {
       <div className="mb-4">
         <h1 className="my-5 font-bold text-2xl">Today's biggest hits</h1>
         <div className="flex overflow-auto">
-          {songs.map((e, i) => (
+          {songs?.map((e, i) => (
             <SongItem
               key={i}
-              image={e.thumbnail.url}
+              image={e?.thumbnail?.url || "https://via.placeholder.com/150"}
               name={e.title}
               desc={e.description}
               id={e._id}

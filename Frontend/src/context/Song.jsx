@@ -1,72 +1,117 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import api from "./api"; // ✅ centralized axios instance (api.js se import karna hai)
+import api from "./api";
 
 const SongContext = createContext();
 
 export const SongProvider = ({ children }) => {
   const [songs, setSongs] = useState([]);
-  const [albums, setAlbums] = useState([]);
-  const [song, setSong] = useState({});
-  const [selectedSong, setSelectedSong] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [songLoading, setSongLoading] = useState(true);
+  const [selectedSong, setSelectedSong] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [song, setSong] = useState({});
+  const [albums, setAlbums] = useState([]);
+  const [albumSong, setAlbumSong] = useState([]);
+  const [albumData, setAlbumData] = useState({});
 
-  // ---------------- FETCH SONGS ----------------
   async function fetchSongs() {
     try {
       const { data } = await api.get("/song/all");
-      setSongs(data);
+      setSongs(data || []);
+      if (data?.length > 0) setSelectedSong(data[0]._id);
+      setIsPlaying(false);
+      setSongLoading(false);
     } catch (error) {
-      console.log(error);
-      toast.error(error.response?.data?.message || "Error fetching songs");
-    }
-  }
-
-  // ---------------- FETCH ALBUMS ----------------
-  async function fetchAlbums() {
-    try {
-      const { data } = await api.get("/album/all");
-      setAlbums(data);
-    } catch (error) {
-      console.log(error);
-      toast.error(error.response?.data?.message || "Error fetching albums");
-    }
-  }
-
-  // ---------------- FETCH SINGLE SONG ----------------
-  async function fetchSingleSong() {
-    if (!selectedSong) return;
-    setSongLoading(true);
-    try {
-      const { data } = await api.get(`/song/single/${selectedSong}`);
-      setSong(data);
-    } catch (error) {
-      console.log(error);
-      toast.error(error.response?.data?.message || "Error fetching song");
-    } finally {
+      console.log("Error fetching songs:", error);
       setSongLoading(false);
     }
   }
 
-  // ---------------- ADD ALBUM ----------------
-  async function addAlbum(formData) {
+  async function fetchSingleSong() {
+    if (!selectedSong) return;
     try {
-      const { data } = await api.post("/album/add", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success(data.message);
-      fetchAlbums();
+      const { data } = await api.get(`/song/single/${selectedSong}`);
+      setSong(data || {});
     } catch (error) {
-      toast.error(error.response?.data?.message || "Error");
+      console.log("Error fetching single song:", error);
+      setSong({});
     }
   }
 
-  // ---------------- ADD SONG ----------------
-  async function addSong(formData) {
+  async function addAlbum(formData, setTitle, setDescription, setFile) {
+    setLoading(true);
     try {
-      const { data } = await api.post("/song/add", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await api.post("/song/album/new", formData);
+      toast.success(data.message);
+      setLoading(false);
+      fetchAlbums();
+      setTitle("");
+      setDescription("");
+      setFile(null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error");
+      setLoading(false);
+    }
+  }
+
+  async function addSong(formData, setTitle, setDescription, setFile, setSinger, setAlbum) {
+    setLoading(true);
+    try {
+      const { data } = await api.post("/song/new", formData);
+      toast.success(data.message);
+      setLoading(false);
+      fetchSongs();
+      setTitle("");
+      setDescription("");
+      setFile(null);
+      setSinger("");
+      setAlbum("");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error");
+      setLoading(false);
+    }
+  }
+
+  async function addThumbnail(id, formData, setFile) {
+    setLoading(true);
+    try {
+      const { data } = await api.post(`/song/${id}`, formData);
+      toast.success(data.message);
+      setLoading(false);
+      fetchSongs();
+      setFile(null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error");
+      setLoading(false);
+    }
+  }
+
+  async function fetchAlbums() {
+    try {
+      const { data } = await api.get("/song/album/all");
+      setAlbums(data || []);
+    } catch (error) {
+      console.log("Error fetching albums:", error);
+      setAlbums([]);
+    }
+  }
+
+  async function fetchAlbumSong(id) {
+    try {
+      const { data } = await api.get(`/song/album/${id}`);
+      setAlbumSong(data.songs || []);
+      setAlbumData(data.album || {});
+    } catch (error) {
+      console.log("Error fetching album songs:", error);
+      setAlbumSong([]);
+      setAlbumData({});
+    }
+  }
+
+  async function deleteSong(id) {
+    try {
+      const { data } = await api.delete(`/song/${id}`);
       toast.success(data.message);
       fetchSongs();
     } catch (error) {
@@ -74,44 +119,50 @@ export const SongProvider = ({ children }) => {
     }
   }
 
-  // ---------------- ADD ALBUM THUMBNAIL ----------------
-  async function addThumbnail(formData, id) {
-    try {
-      const { data } = await api.post(`/album/thumbnail/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success(data.message);
-      fetchAlbums();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Error");
-    }
+  const [index, setIndex] = useState(0);
+  function nextMusic() {
+    if (!songs.length) return;
+    const nextIndex = index === songs.length - 1 ? 0 : index + 1;
+    setIndex(nextIndex);
+    setSelectedSong(songs[nextIndex]?._id || null);
   }
 
-  // Auto fetch songs + albums on mount
+  function prevMusic() {
+    if (!songs.length || index === 0) return;
+    const prevIndex = index - 1;
+    setIndex(prevIndex);
+    setSelectedSong(songs[prevIndex]?._id || null);
+  }
+
   useEffect(() => {
     fetchSongs();
     fetchAlbums();
   }, []);
 
-  // Auto fetch single song when selectedSong changes
-  useEffect(() => {
-    fetchSingleSong();
-  }, [selectedSong]);
-
   return (
     <SongContext.Provider
       value={{
         songs,
-        albums,
-        song,
-        songLoading,
-        selectedSong,
-        setSelectedSong,
-        fetchSongs,
-        fetchAlbums,
         addAlbum,
+        loading,
+        songLoading,
+        albums,
         addSong,
         addThumbnail,
+        deleteSong,
+        fetchSingleSong,
+        song,
+        setSelectedSong,
+        isPlaying,
+        setIsPlaying,
+        selectedSong,
+        nextMusic,
+        prevMusic,
+        fetchAlbumSong,
+        albumSong,
+        albumData,
+        fetchSongs,
+        fetchAlbums,
       }}
     >
       {children}
@@ -120,4 +171,6 @@ export const SongProvider = ({ children }) => {
 };
 
 export const SongData = () => useContext(SongContext);
+
+
 

@@ -2,11 +2,10 @@ import axios from "axios";
 import { API_BASE } from "./config";
 
 const api = axios.create({
-  baseURL: API_BASE + "/api",
-  withCredentials: true   // ✅ har request ke sath cookies bhejega
+  baseURL: API_BASE,
+  withCredentials: true
 });
 
-// Agar kabhi token manually localStorage me ho to bhi header me daal do
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -16,4 +15,5 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
+
 

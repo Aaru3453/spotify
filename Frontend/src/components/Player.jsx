@@ -16,8 +16,11 @@ const Player = () => {
 
   const audioRef = useRef(null);
 
+  // Fetch single song only if selectedSong exists
   useEffect(() => {
-    fetchSingleSong();
+    if (selectedSong) {
+      fetchSingleSong();
+    }
   }, [selectedSong]);
 
   const handlePlayPause = () => {
@@ -76,25 +79,18 @@ const Player = () => {
 
   return (
     <div>
-      {song && (
+      {song ? (
         <div className="h-[10%] bg-black flex justify-between items-center text-white px-4">
           {/* Song Info */}
           <div className="lg:flex items-center gap-4">
             <img
-              src={
-                song?.thumbnail?.url
-                  ? song.thumbnail.url
-                  : "https://via.placeholder.com/50"
-              }
+              src={song?.thumbnail?.url || "https://via.placeholder.com/50"}
               className="w-12"
-              alt="song-thumbnail"
+              alt={song?.title || "song-thumbnail"}
             />
             <div className="hidden md:block">
               <p>{song?.title || "Unknown Title"}</p>
-              <p>
-                {song?.description ? song.description.slice(0, 30) : "No info"}
-                ...
-              </p>
+              <p>{song?.description?.slice(0, 30) || "No Description"}...</p>
             </div>
           </div>
 
@@ -144,9 +140,14 @@ const Player = () => {
             />
           </div>
         </div>
+      ) : (
+        <div className="h-[10%] bg-black flex justify-center items-center text-white">
+          No song selected
+        </div>
       )}
     </div>
   );
 };
 
 export default Player;
+

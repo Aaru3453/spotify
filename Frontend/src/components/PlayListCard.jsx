@@ -12,7 +12,7 @@ const PlayListCard = () => {
       <div className="ml-4">
         <h2>My Playlist</h2>
         <p className="text-gray-400 text-sm">
-          PlayList • <span>{user.name}</span>
+          PlayList • <span>{user?.name || "Guest"}</span>
         </p>
       </div>
     </div>

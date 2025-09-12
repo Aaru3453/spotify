@@ -49,8 +49,8 @@ const SongItem = ({ image, name, desc, id }) => {
         </div>
       </div>
 
-      <p className="font-bold mt-2 mb-1">{name}</p>
-      <p className="text-slate-200 text-sm">{desc}</p>
+      <p className="font-bold mt-2 mb-1">{name || "Unknown Song"}</p>
+      <p className="text-slate-200 text-sm">{desc || "No Description"}</p>
     </div>
   );
 };
