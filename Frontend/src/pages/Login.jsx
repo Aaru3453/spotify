@@ -62,7 +62,7 @@ const Login = () => {
             to="/register"
             className="text-sm text-gray-400 hover:text-gray-300"
           >
-            don't have accont?
+            don't have account?
           </Link>
         </div>
       </div>

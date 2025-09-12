@@ -1,43 +1,66 @@
 import React from "react";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import {Routes, Route, HashRouter} from "react-router-dom";
 import Home from "./pages/Home";
 import { UserData } from "./context/User";
 import Loading from "./components/Loading";
 import Admin from "./pages/Admin";
 import PlayList from "./pages/PlayList";
 import Album from "./pages/Album";
+import ProtectedRoute from "./components/ProtectedRoute"; // ✅ import
 
 function App() {
-  const {loading, user, Authen} = UserData();
+  const { loading, user, Authen } = UserData();
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
-  <>
-    {loading ? (
-      <Loading/>
-    ): (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
-        <Route path="/" element={Authen?<Home/>:<Login/>}/>
+        {/* Public Routes */}
+        <Route path="/login" element={Authen ? <Home /> : <Login />} />
+        <Route path="/register" element={Authen ? <Home /> : <Register />} />
 
-        <Route path="/playlist" element={Authen?<PlayList user={user} />:<Login/>}/>
-
-        <Route path="/album/:id" element={Authen?<Album user={user} />:<Login/>}/>
-
-        <Route path="/admin" element={Authen?<Admin/>:<Login/>}/>
-
-        <Route path="/login" element={Authen?<Home/>:<Login/>}/>
-
-        <Route path="/register" element={Authen?<Home/>:<Register/>}/>
-
+        {/* Protected Routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/playlist"
+          element={
+            <ProtectedRoute>
+              <PlayList user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/album/:id"
+          element={
+            <ProtectedRoute>
+              <Album user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <Admin />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-    </HashRouter>
-  )}
-  
-  </>
+    </BrowserRouter>
   );
-};
+}
 
 export default App;
-
 

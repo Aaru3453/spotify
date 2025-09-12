@@ -6,26 +6,20 @@ import { API_BASE } from "./config";
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState([]);
+  const [user, setUser] = useState({});   // ✅ object instead of array
   const [Authen, setAuthen] = useState(false);
   const [btnLoading, setBtnLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  async function registerUser(
-    name,
-    email,
-    password,
-    navigate,
-    fetchSongs,
-    fetchAlbums
-  ) {
+  // ---------------- REGISTER ----------------
+  async function registerUser(name, email, password, navigate, fetchSongs, fetchAlbums) {
     setBtnLoading(true);
     try {
-      const { data } = await axios.post(`${API_BASE}/api/user/register`, {
-        name,
-        email,
-        password,
-      });
+      const { data } = await axios.post(
+        `${API_BASE}/api/user/register`,
+        { name, email, password },
+        { withCredentials: true }
+      );
       toast.success(data.message);
       setUser(data.user);
       setAuthen(true);
@@ -39,13 +33,15 @@ export const UserProvider = ({ children }) => {
     }
   }
 
+  // ---------------- LOGIN ----------------
   async function loginUser(email, password, navigate, fetchSongs, fetchAlbums) {
     setBtnLoading(true);
     try {
-      const { data } = await axios.post(`${API_BASE}/api/user/login`, {
-        email,
-        password,
-      });
+      const { data } = await axios.post(
+        `${API_BASE}/api/user/login`,
+        { email, password },
+        { withCredentials: true }
+      );
       toast.success(data.message);
       setUser(data.user);
       setAuthen(true);
@@ -59,6 +55,7 @@ export const UserProvider = ({ children }) => {
     }
   }
 
+  // ---------------- FETCH USER ----------------
   async function fetchUser() {
     try {
       const { data } = await axios.get(`${API_BASE}/api/user/me`, {
@@ -69,25 +66,32 @@ export const UserProvider = ({ children }) => {
       setLoading(false);
     } catch (error) {
       console.log(error);
+      setUser({});          // ✅ reset user
       setAuthen(false);
       setLoading(false);
     }
   }
 
+  // ---------------- LOGOUT ----------------
   async function logoutUser() {
     try {
-      await axios.get(`${API_BASE}/api/user/logout`, {
-        withCredentials: true,
-      });
+      await axios.get(`${API_BASE}/api/user/logout`, { withCredentials: true });
+      setUser({});          // ✅ clear user
+      setAuthen(false);     // ✅ clear auth
       window.location.reload();
     } catch (error) {
       toast.error(error.response?.data?.message || "Error");
     }
   }
 
+  // ---------------- ADD TO PLAYLIST ----------------
   async function addToPlaylist(id) {
     try {
-      const { data } = await axios.post(`${API_BASE}/api/user/song/${id}`);
+      const { data } = await axios.post(
+        `${API_BASE}/api/user/song/${id}`,
+        {},
+        { withCredentials: true }
+      );
       toast.success(data.message);
       fetchUser();
     } catch (error) {
