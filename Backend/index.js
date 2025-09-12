@@ -7,56 +7,51 @@ import cors from "cors";
 
 dotenv.config();
 
-// Cloudinary config
+// ✅ Cloudinary config
 cloudinary.v2.config({
-  cloud_name: process.env.Cloud_Name,
-  api_key: process.env.Cloud_Api,
-  api_secret: process.env.Cloud_Secret,
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
 });
 
 const app = express();
 
 // ✅ Allowed origins list
 const allowedOrigins = [
-  "http://localhost:5173",                 // Local development
-  "https://spotify-1-naze.onrender.com"
+  "http://localhost:5173",                 // Local development (Vite frontend)
+  "https://spotify-1-naze.onrender.com"    // Deployed frontend
 ];
 
 // ✅ CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // allow mobile apps, curl
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
       return callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true
+  credentials: true   // ✅ cookies allow
 }));
 
-// Middlewares
+// ✅ Middlewares
 app.use(express.json());
 app.use(cookieParser());
 
-// Environment port
+// ✅ Environment port
 const port = process.env.PORT || 5000;
 
-// Import routes
+// ✅ Import routes
 import userRoutes from "./routes/userRoutes.js";
 import songRoutes from "./routes/songRoutes.js";
 
-// Use routes
+// ✅ Use routes
 app.use("/api/user", userRoutes);
 app.use("/api/song", songRoutes);
 
-// Start server
+// ✅ Start server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`✅ Server is running on http://localhost:${port}`);
   connectDb();
 });
-
-
-
-
